@@ -5,8 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Product extends Model
+class OrderItem extends Model
 {
-    protected $primaryKey = 'product_id';
-    protected $fillable = ['stock_quantity'];
+    protected $fillable = ['order_id', 'product_id', 'quantity', 'price'];
 }
