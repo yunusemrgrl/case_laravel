@@ -9,6 +9,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\CampaignController;
 
+/*
+    Kargo Ücreti Hesaplaması ve Kampanya Uygulaması
+
+    Kargo ücreti, siparişin indirimli olmayan orijinal fiyatı üzerinden hesaplanır.
+    Alıcının ödemesi gereken toplam miktar, indirimler uygulandıktan sonra belirlenir.
+    Eğer alıcının sipariş tutarı, indirim uygulandıktan sonra 200 TL'nin altındaysa, kargo ücreti eklenmez ve kargo ücretsiz olarak işleme konur.
+
+    İşleyiş:
+
+    Sipariş alındığında, ürünlerin toplam indirimsiz fiyatı hesaplanır.
+    Eğer sipariş tutarı, 200 TL'nin üstündeyse, kargo ücretsiz olarak kabul edilir.
+    Alıcının sipariş tutarı, kampanyalar ve varsa kargo indirimi uygulandıktan sonra belirlenir.
+
+ */
+
+
 class OrderController extends Controller
 {
     public function store(Request $request, CampaignController $campaignController)
@@ -55,7 +71,7 @@ class OrderController extends Controller
             DB::commit();
             return response()->json([
                 'message' => 'Order created successfully',
-                'order_id' => $order->id,
+                'order_id' => $order,
             ], 201);
 
         } catch (\Exception $e) {

@@ -11,10 +11,13 @@ class  CampaignService
     {
         $totalAmountWithSabahattinAli = $this->applySabahattinAliDiscount($orderItems);
         $totalAmountWithTotalAmountDiscount = $this->applyTotalAmountDiscount($totalAmount);
-
+        // TODO If no campaign has been applied, the 'none' campaign will be applied!
         if ($totalAmountWithSabahattinAli < $totalAmountWithTotalAmountDiscount) {
             $discountedTotalAmount = $totalAmountWithTotalAmountDiscount;
             $appliedCampaign = 'TT5';
+        } else if ($totalAmountWithSabahattinAli == $totalAmountWithTotalAmountDiscount) {
+            $discountedTotalAmount = 0;
+            $appliedCampaign = 'None';
         } else {
             $discountedTotalAmount = $totalAmountWithSabahattinAli;
             $appliedCampaign = 'SBHTTN2';
@@ -27,19 +30,22 @@ class  CampaignService
     private function applySabahattinAliDiscount($orderItems)
     {
         $sabahattinAliItemCount = 0;
-        $product = null;
-
+        $discountAmount = 0;
+        $maxProductPrice = 0;
         foreach ($orderItems as $orderItem) {
-            $product = Product::where('author', '=', 'Sabahattin Ali')
+            $product = Product::where('product_id', '=', $orderItem['product_id'])
+                ->where('author', '=', 'Sabahattin Ali')
                 ->where('category_id', '=', 1)
                 ->first();
             if ($product) {
                 $sabahattinAliItemCount += $orderItem['quantity'];
+                $maxProductPrice = max($maxProductPrice, $product->list_price);
+                if ($sabahattinAliItemCount >= 2) {
+                    $freeSabahattinAliItemCount = min($sabahattinAliItemCount, 1);
+                    $discountAmount = $freeSabahattinAliItemCount * $maxProductPrice;
+                }
             }
         }
-        $freeSabahattinAliItemCount = min($sabahattinAliItemCount, 1);
-
-        $discountAmount = $freeSabahattinAliItemCount * $product->list_price;
         return $discountAmount;
     }
 
@@ -50,6 +56,7 @@ class  CampaignService
         if ($totalAmount >= 100) {
             $discountAmount = $totalAmount * 0.05;
         }
+
         return $discountAmount;
     }
 
