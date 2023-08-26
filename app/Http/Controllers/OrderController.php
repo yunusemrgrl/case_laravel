@@ -49,7 +49,7 @@ class OrderController extends Controller
             $shippingFee = $totalAmount >= 200 ? 0 : 75;
 
             $order = new Order();
-            $order->total_amount = $totalAmount + $shippingFee - $discountedTotalAmount;
+            $order->total_amount = round($totalAmount + $shippingFee - $discountedTotalAmount,2);
             $order->shipping_fee = $shippingFee;
             $order->discount_amount = $discountedTotalAmount;
             $order->applied_campaign = $appliedCampaign;
@@ -71,7 +71,7 @@ class OrderController extends Controller
             DB::commit();
             return response()->json([
                 'message' => 'Order created successfully',
-                'order_id' => $order,
+                'order' => $order,
             ], 201);
 
         } catch (\Exception $e) {
@@ -79,4 +79,24 @@ class OrderController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
+
+    public function show($orderNumber)
+    {
+        $order = Order::where('id', '=', $orderNumber)
+            ->with('orderedItem.orderedProduct')
+            ->first();
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $undiscountedTotalAmount = $order->total_amount + $order->discount_amount;
+
+        $order->undiscounted_total_amount = $undiscountedTotalAmount;
+
+        return response()->json([
+            'order' => $order,
+        ], 200);
+    }
+
 }
